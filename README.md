@@ -1,6 +1,6 @@
 # arduino
 Contains all old arduino projects (at least what i found...)
-The contents are the following
+  The contents are the following:
 ## Bed LED project
 Controller code for the RGB led strip for under my bed
 >port it to esp, for the faster clock speed and higher memory
