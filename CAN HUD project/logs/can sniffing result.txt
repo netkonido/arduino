@@ -1,0 +1,21 @@
+engine rpm id: 124
+coolant temp id: 338
+vehicle speed id: 310
+
+not from ECU:
+3D0
+3D1
+3D8
+636
+637
+638
+
+not temp or speed:
+3D0 - mostly constant
+3D1 - mostly constant
+3D8 - mostly constant
+3DD 3DC - at engine startup, only once
+4F0 - mostly constant
+631 - mostly constant
+636 637 638 - mostly constant
+318 - could be timing

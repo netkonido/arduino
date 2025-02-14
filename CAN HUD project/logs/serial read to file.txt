@@ -1,0 +1,7 @@
+$port = New-Object System.IO.Ports.SerialPort COM4
+$port.Open()
+while($true){
+$line = $port.readLine();
+$line >> log.txt
+$line
+}
