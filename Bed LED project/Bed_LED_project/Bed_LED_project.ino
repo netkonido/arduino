@@ -8,11 +8,11 @@
 #define SUNSETSPEED 5
 #define LAVASPEED 20
 #define LAVAWIDTH 30
-#define FADESPEED 30
+#define FADESPEED 15
 #define SOLIDFADEMODULATION 25 //     HANG                |...
 #define FADECHANGE 150 //  Color2     /----\  MULTxHANG   /|...
-#define FADEHANG 200    // Color1 ---/      \------------/ |...
-#define FADEMULT 1 //               ^CHANGE^              |...
+#define FADEHANG 350    // Color1 ---/      \------------/ |...
+#define FADEMULT 1.5 //               ^CHANGE^              |...
 /*typedef struct
   {
   //each value goes from 0-255;
@@ -48,6 +48,7 @@ enum basicColors : Color
   YELLOW = 0x00ffff00,
   ORANGE = 0x006fff00,
   PURPLE = 0x00007fff,
+  PINK = 0x005fffff,
 
   WHITE = 0x00ffffff,
   BLACK = 0x00000000
@@ -61,8 +62,10 @@ int colorAngle = 0;
 
 Color solidColor = WHITE;
 
-Color fadeColor1 = PURPLE;
-Color fadeColor2 = MAGENTA;
+Color fadeColor1 = 0x0056ff00;
+Color fadeColor2 = 0x0034ff00;
+//Color fadeColor1 = RED;
+//Color fadeColor2 = PURPLE;
 //Color fadeColor1 = BLUE;
 //Color fadeColor2 = 0x009100ff;
 //Color fadeColor2 = 0x00ff0000;
@@ -143,8 +146,8 @@ void loop() {
       // component = color1 + (((color2-color1)*step)/steps)
       int currentStep = stepCount;
       int redComponent =   (int)getR(fadeColor1) + (int)((float)(((float)getR(fadeColor2)-(float)getR(fadeColor1))* (float)currentStep) / (float)FADECHANGE);
-      int greenComponent = (int)getG(fadeColor2) + (int)((float)(((float)getG(fadeColor2)-(float)getG(fadeColor1))* (float)currentStep) / (float)FADECHANGE);
-      int blueComponent =  (int)getB(fadeColor2) + (int)((float)(((float)getB(fadeColor2)-(float)getB(fadeColor1))* (float)currentStep) / (float)FADECHANGE);
+      int greenComponent = (int)getG(fadeColor1) + (int)((float)(((float)getG(fadeColor2)-(float)getG(fadeColor1))* (float)currentStep) / (float)FADECHANGE);
+      int blueComponent =  (int)getB(fadeColor1) + (int)((float)(((float)getB(fadeColor2)-(float)getB(fadeColor1))* (float)currentStep) / (float)FADECHANGE);
       stripColors[0] = strip.gamma32(strip.Color(redComponent, greenComponent, blueComponent));
     }
     else if (stepCount <= FADECHANGE + FADEHANG)
