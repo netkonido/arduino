@@ -1,8 +1,11 @@
 #include <Adafruit_NeoPixel.h>
+#include <enums.ino>
 
 #define MAXPERCENT 255
 #define LEDCOUNT 240
 #define CONTROLPIN 3
+#define RELAY 4
+#define BUTTON 5
 
 #define RGBSPEED 25
 #define SUNSETSPEED 5
@@ -13,46 +16,10 @@
 #define FADECHANGE 150 //  Color2     /----\  MULTxHANG   /|...
 #define FADEHANG 350    // Color1 ---/      \------------/ |...
 #define FADEMULT 1.5 //               ^CHANGE^              |...
-/*typedef struct
-  {
-  //each value goes from 0-255;
-  int R;
-  int G;
-  int B;
-  } Color;
-*/
+
+
 typedef uint32_t Color;
 Adafruit_NeoPixel strip(LEDCOUNT, CONTROLPIN, NEO_RGB + NEO_KHZ800);
-
-enum Mode
-{
-  TEST,
-  RGB,//rgb spectrum lights
-  SOLIDCOLOR, // single color on all leds
-  FADE,  //fade from one color to the next with traveling lights
-  SOLIDFADE, // solid color with travelling light/dark patches
-  SUNSET, // slow fade between bright yellow to dark orange and back
-  LAVA, // yellow-orange-red patterns fading in-out
-  GLACIER, //same as lava except blue-cyan-white
-  FOREST //
-  //RUNNINGLIGHT // small bit of leds going front-back bounce style
-};
-
-enum basicColors : Color
-{
-  RED = 0x0000ff00,
-  GREEN = 0x00ff0000,
-  BLUE = 0x000000ff,
-  CYAN = 0x00ff00ff,
-  MAGENTA = 0x0000ffff,
-  YELLOW = 0x00ffff00,
-  ORANGE = 0x006fff00,
-  PURPLE = 0x00007fff,
-  PINK = 0x005fffff,
-
-  WHITE = 0x00ffffff,
-  BLACK = 0x00000000
-};
 
 
 enum Mode mode = FADE;
@@ -86,6 +53,8 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(CONTROLPIN, OUTPUT);
+  pinMode(RELAY, OUTPUT);
+  pinMode(BUTTON, INPUT);
   strip.begin();
   strip.clear();
   for (int i = 0; i < LEDCOUNT; i++)
@@ -250,115 +219,4 @@ Color combine(uint8_t r, uint8_t g, uint8_t b)
   return ((uint32_t)r << 16 | (uint32_t)g << 8 | (uint32_t)b);
 }
 
-void lavaIterate(Color bottom, Color base, Color top)
-{
-  for (int i = 0; i < LEDCOUNT; i++)
-  {
-    int lmi = lavaModulation[i];
-    for (int j = 0; j < abs(lmi); j++)
-    {
-      Color* currentColor = &stripColors[i + j];
-      if (lmi > 0)
-      {
-        int incrementR = (getR(top) - getR(base)) / (LAVAWIDTH / 2);
-        int incrementG = (getG(top) - getG(base)) / (LAVAWIDTH / 2);
-        int incrementB = (getB(top) - getB(base)) / (LAVAWIDTH / 2);
-        if (abs(lmi) < LAVAWIDTH / 2)
-        {
-          //increment color towards top
-          if (i + j < LEDCOUNT && i + j > 0)
-          {
-            stripColors[i + j] = combine(getR(stripColors[i + j]) + incrementR, getG(stripColors[i + j]) + incrementG, getB(stripColors[i + j]) + incrementB);
-          }
-          if (i - j < LEDCOUNT && i - j > 0)
-          {
-            stripColors[i + j] = combine(getR(stripColors[i + j]) + incrementR, getG(stripColors[i + j]) + incrementG, getB(stripColors[i + j]) + incrementB);
-          }
-        }
-        else
-        {
-          //increment color towards base
-          int x = ((LAVAWIDTH / 2) - (j % (LAVAWIDTH / 2)));
-          if (i + x < LEDCOUNT && i + x > 0)
-          {
-            stripColors[i + x] = combine(getR(stripColors[i + x]) - incrementR, getG(stripColors[i + x]) - incrementG, getB(stripColors[i + x]) - incrementB);
-          }
-          if (i - x < LEDCOUNT && i - x > 0)
-          {
-            stripColors[i + x] = combine(getR(stripColors[i + x]) - incrementR, getG(stripColors[i + x]) - incrementG, getB(stripColors[i + x]) - incrementB);
-          }
-        }
-      }
-      else
-      {
-        int incrementR = (getR(bottom) - getR(base)) / (LAVAWIDTH / 2);
-        int incrementG = (getG(bottom) - getG(base)) / (LAVAWIDTH / 2);
-        int incrementB = (getB(bottom) - getB(base)) / (LAVAWIDTH / 2);
 
-        if (abs(lmi) < LAVAWIDTH / 2)
-        {
-          //increment color towards bottom
-          if (i + j < LEDCOUNT && i + j >= 0)
-          {
-            stripColors[i + j] = combine(getR(stripColors[i + j]) + incrementR, getG(stripColors[i + j]) + incrementG, getB(stripColors[i + j]) + incrementB);
-          }
-          if (i - j < LEDCOUNT && i - j >= 0)
-          {
-            stripColors[i + j] = combine(getR(stripColors[i + j]) + incrementR, getG(stripColors[i + j]) + incrementG, getB(stripColors[i + j]) + incrementB);
-          }
-        }
-        else
-        {
-          //increment color towards base
-          int x = ((LAVAWIDTH / 2) - (j % (LAVAWIDTH / 2)));
-          if (i + x < LEDCOUNT && i + x >= 0)
-          {
-            stripColors[i + x] = combine(getR(stripColors[i + x]) - incrementR, getG(stripColors[i + x]) - incrementG, getB(stripColors[i + x]) - incrementB);
-          }
-          if (i - x < LEDCOUNT && i - x >= 0)
-          {
-            stripColors[i + x] = combine(getR(stripColors[i + x]) - incrementR, getG(stripColors[i + x]) - incrementG, getB(stripColors[i + x]) - incrementB);
-          }
-        }
-      }
-    }
-    lavaModulation[i] += sgn(lavaModulation[i]);
-    lavaModulation[i] %= LAVAWIDTH;
-  }
-}
-
-void lavaRandom()
-{
-  int r = random(0, LEDCOUNT);
-  int* p = &lavaModulation[r];
-  int q = random(0, 2);
-  if (q == 0) q = -1;
-  for (int i = 0; i <= LAVAWIDTH / 4; i++)
-  {
-    if (r + i >= 0 && r + i < LEDCOUNT)
-    {
-      if (lavaModulation[r + i] != 0)
-      {
-        q = 0;
-      }
-    }
-    if (r - i >= 0 && r - i < LEDCOUNT)
-    {
-      if (lavaModulation[r - i] != 0)
-      {
-        q = 0;
-      }
-    }
-  }
-  if (q != 0)
-  {
-    p = q;
-  }
-}
-
-int sgn(int a)
-{
-  if (a > 0) return 1;
-  if (a < 0) return -1;
-  return 0;
-}
